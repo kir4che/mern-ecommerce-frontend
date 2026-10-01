@@ -34,11 +34,12 @@
 | --------- | ------------------------------------------ |
 | 框架      | React 19、TypeScript、Vite                 |
 | 狀態管理  | Redux Toolkit、RTK Query（伺服器資料快取） |
-| 登入驗證  | Express Session、httpOnly cookie           |
 | 路由      | React Router 7（lazy loading、路由守衛）   |
 | UI 與圖表 | Tailwind CSS v4、daisyUI、Swiper、Chart.js |
 | 表單      | react-hook-form、zod                       |
 | 測試      | Vitest、Testing Library、MSW               |
+
+認證由後端 Express Session + httpOnly cookie 處理，前端僅需設定 `credentials: "include"` 帶上 session cookie。
 
 ## 📁 專案架構
 
