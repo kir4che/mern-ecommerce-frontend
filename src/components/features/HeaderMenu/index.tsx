@@ -148,7 +148,9 @@ const HeaderMenu = () => {
                       variant="secondary"
                       className={cn(
                         "h-9",
-                        isMenuOpen ? "hover:bg-white hover:text-primary" : ""
+                        isMenuOpen
+                          ? "border-white bg-transparent text-white hover:bg-white hover:text-primary"
+                          : ""
                       )}
                     >
                       登入

@@ -27,6 +27,10 @@ type LoginLocationState = {
   email?: string;
 };
 
+const demoEmail = import.meta.env.VITE_DEMO_EMAIL?.trim();
+const demoPassword = import.meta.env.VITE_DEMO_PASSWORD;
+const hasDemoAccount = Boolean(demoEmail && demoPassword);
+
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,34 +63,44 @@ const Login = () => {
     });
   }, [successMessage, showAlert]);
 
-  const onSubmit = async ({ email, password }: LoginFormData) => {
+  const redirectAfterLogin = () => {
+    const fromState = state?.from; // 使用者登入前的頁面路徑（若有），可於登入後導回去。
+
+    const isSafePath = (p?: string): p is string =>
+      typeof p === "string" && p.startsWith("/") && !p.startsWith("//");
+
+    const stateTarget = fromState?.pathname
+      ? `${fromState.pathname}${fromState.search || ""}`
+      : undefined;
+
+    const target = isSafePath(redirectPath)
+      ? redirectPath
+      : isSafePath(stateTarget)
+        ? stateTarget
+        : "/";
+
+    // replace: true → 導回後瀏覽記錄不留登入頁面，避免返回登入頁。
+    navigate(target, { replace: true });
+  };
+
+  const loginWithCredentials = async (email: string, password: string) => {
     try {
       await login(email, password, rememberMe);
-
-      const fromState = state?.from; // 使用者登入前的頁面路徑（若有），可於登入後導回去。
-
-      const isSafePath = (p?: string): p is string =>
-        typeof p === "string" && p.startsWith("/") && !p.startsWith("//");
-
-      const stateTarget = fromState?.pathname
-        ? `${fromState.pathname}${fromState.search || ""}`
-        : undefined;
-
-      const target = isSafePath(redirectPath)
-        ? redirectPath
-        : isSafePath(stateTarget)
-          ? stateTarget
-          : "/";
-
-      // 登入成功後導回原本的頁面，若沒有則導回首頁。
-      // replace: true → 導回後瀏覽記錄不留登入頁面，避免返回登入頁。
-      navigate(target, { replace: true });
+      redirectAfterLogin();
     } catch (err: unknown) {
       showAlert({
         variant: "error",
         message: getErrorMessage(err, "登入失敗，請檢查帳號密碼"),
       });
     }
+  };
+
+  const onSubmit = ({ email, password }: LoginFormData) =>
+    loginWithCredentials(email, password);
+
+  const handleDemoLogin = () => {
+    if (!demoEmail || !demoPassword) return;
+    void loginWithCredentials(demoEmail, demoPassword);
   };
 
   return (
@@ -138,6 +152,17 @@ const Login = () => {
         >
           {isLoading || isSubmitting ? "登入中" : "登入"}
         </Button>
+        {hasDemoAccount && (
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={isLoading || isSubmitting}
+            className="w-full py-2"
+            onClick={handleDemoLogin}
+          >
+            使用測試帳號登入
+          </Button>
+        )}
         <p className="text-center">
           還沒有帳號？
           <Link to="/register" className="link underline-offset-4">

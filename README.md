@@ -83,15 +83,28 @@ npm run dev
 
 ```env
 VITE_API_URL=http://localhost:8080/api
+VITE_ECPAY_URL=https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5
 ```
 
-如果沒有 ECPay 測試環境，也可以在 `.env.local` 加入以下設定，使用開發環境的模擬付款流程：
+`VITE_ECPAY_URL` 預設為綠界測試環境；部署正式環境時，請改成正式金流網址。
+
+如果沒有綠界測試環境，也可以在 `.env.local` 加入以下設定，使用開發環境的模擬付款流程：
 
 ```env
 VITE_DEV_PAY=true
 ```
 
-> `VITE_DEV_PAY=true` 只會在開發環境生效，正式環境仍需使用實際付款流程。
+`VITE_DEV_PAY=true` 只會在開發環境生效，正式環境仍需使用實際付款流程。
+
+如果要在登入頁提供公開展示帳號，請另外設定：
+
+```env
+VITE_DEMO_EMAIL=test@example.com
+VITE_DEMO_PASSWORD=Test12345
+```
+
+前端的 `VITE_DEMO_EMAIL`、`VITE_DEMO_PASSWORD` 必須與後端的
+`DEMO_USER_EMAIL`、`DEMO_USER_PASSWORD` 使用相同值。後端啟動時會在帳號不存在時自動建立一般使用者帳號，既有帳號不會被覆蓋。
 
 ## 🧪 測試
 

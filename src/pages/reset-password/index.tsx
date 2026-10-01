@@ -63,7 +63,7 @@ const RequestResetLink = () => {
       }).unwrap()) as ResetPasswordResponse;
       showAlert({
         variant: "success",
-        message: "若該 Email 存在，重設密碼連結已發送至您的信箱。",
+        message: "如果這個 Email 已註冊，我們會將重設密碼連結寄到您的信箱。",
       });
       setCountdown(res.retryAfter ?? 60);
     } catch (err: unknown) {
