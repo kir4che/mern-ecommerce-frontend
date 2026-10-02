@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import type { Swiper as SwiperClass } from "swiper";
-import { Autoplay } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import BlurImage from "@/components/ui/BlurImage";
@@ -44,6 +43,7 @@ const App = () => {
   const newsList = data?.news ?? [];
   const campaignNews = newsList.slice(0, 8);
   const latestNews = newsList.slice(0, 5);
+  const canLoopCampaign = campaignNews.length >= 11;
 
   const staticCategoryOptions = [
     { label: "全部", value: "/collections/all" },
@@ -120,10 +120,8 @@ const App = () => {
           </div>
           <Swiper
             slidesPerView="auto"
-            centeredSlides
-            modules={[Autoplay]}
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
-            loop
+            centeredSlides={canLoopCampaign}
+            loop={canLoopCampaign}
             breakpoints={{
               0: { slidesPerView: 2, spaceBetween: 16 },
               768: { slidesPerView: 3.2, spaceBetween: 16 },
