@@ -4,19 +4,43 @@ import { createBrowserRouter, Navigate } from "react-router";
 import AdminPageSkeleton from "@/components/features/AdminPageSkeleton";
 import AuthGate from "@/components/features/AuthGate";
 import Loading from "@/components/ui/Loading";
+import RouteErrorFallback from "@/components/ui/ErrorBoundary/RouteErrorFallback";
 import AdminLayout from "@/layouts/AdminLayout";
 import AppLayout from "@/layouts/AppLayout";
 import NotFound from "@/pages/notFound";
 
 // 真的訪問到路由時才會去 import 對應的頁面，避免一開始就把所有頁面都打包進來。
 const lazyRoute = (load: () => Promise<{ default: ComponentType }>) => ({
-  lazy: async () => ({ Component: (await load()).default }),
+  lazy: async () => {
+    try {
+      return { Component: (await load()).default };
+    } catch (error) {
+      const isChunkError =
+        error instanceof Error &&
+        (error.message.includes(
+          "Failed to fetch dynamically imported module"
+        ) ||
+          error.message.includes("Importing a module script failed"));
+
+      if (isChunkError) {
+        const lastReload = sessionStorage.getItem("chunk_reload_time");
+        const now = Date.now();
+        if (!lastReload || now - Number(lastReload) > 10000) {
+          sessionStorage.setItem("chunk_reload_time", String(now));
+          window.location.reload();
+          return new Promise<{ Component: ComponentType }>(() => {});
+        }
+      }
+      throw error;
+    }
+  },
 });
 
 export const router = createBrowserRouter([
   {
     path: "/admin",
     hydrateFallbackElement: <AdminPageSkeleton />,
+    errorElement: <RouteErrorFallback />,
     element: <AuthGate requireRole="admin" />,
     children: [
       {
@@ -74,6 +98,7 @@ export const router = createBrowserRouter([
   {
     path: "/",
     hydrateFallbackElement: <Loading fullPage />,
+    errorElement: <RouteErrorFallback />,
     element: <AppLayout />,
     children: [
       { index: true, ...lazyRoute(() => import("@/App")) },
