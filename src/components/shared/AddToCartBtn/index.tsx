@@ -77,7 +77,14 @@ const AddToCartBtn = ({
       setAddState("adding");
 
       try {
-        await addToCart(product._id, quantity);
+        const cartProduct = {
+          _id: product._id,
+          title: product.title ?? "",
+          price: product.price ?? 0,
+          imageUrl: product.imageUrl ?? "",
+          countInStock: product.countInStock ?? 0,
+        };
+        await addToCart(product._id, quantity, cartProduct);
         setAddState("success");
 
         // 設定成功訊息顯示時間，1.5 秒後自動隱藏。

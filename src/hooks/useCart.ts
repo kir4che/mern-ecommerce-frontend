@@ -18,7 +18,7 @@ import {
   selectGuestItems,
 } from "@/store/slices/guestCartSlice";
 import { productApi } from "@/store/api/apiProducts";
-import type { CartItem } from "@/types";
+import type { CartItem, CartProduct } from "@/types";
 
 export const useCart = () => {
   const dispatch = useAppDispatch();
@@ -79,23 +79,37 @@ export const useCart = () => {
 
   // 加入購物車
   const handleAddToCart = useCallback(
-    async (productId: string, quantity: number) => {
+    async (
+      productId: string,
+      quantity: number,
+      product?: CartProduct
+    ) => {
       if (!productId) throw new Error("商品 ID 不存在");
       const validQuantity = Math.max(1, quantity || 1);
 
       if (isAuthenticated)
-        await addCartItem({ productId, quantity: validQuantity }).unwrap();
+        await addCartItem({
+          productId,
+          quantity: validQuantity,
+          product,
+        }).unwrap();
       else {
-        const result = await dispatch(
-          productApi.endpoints.getProductById.initiate(productId, {
-            subscribe: false,
-          })
-        ).unwrap();
+        const productData =
+          product?.title && product?.price !== undefined
+            ? product
+            : (
+                await dispatch(
+                  productApi.endpoints.getProductById.initiate(productId, {
+                    subscribe: false,
+                  })
+                ).unwrap()
+              ).product;
+
         dispatch(
           addItem({
             productId,
             quantity: validQuantity,
-            product: result.product,
+            product: productData,
           })
         );
       }

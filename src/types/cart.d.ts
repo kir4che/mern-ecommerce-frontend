@@ -22,6 +22,7 @@ export interface SyncCartData {
 export interface AddCartItemParams {
   productId: string;
   quantity: number;
+  product?: CartProduct;
 }
 
 export interface UpdateCartItemQuantityParams {
