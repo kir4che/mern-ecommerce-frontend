@@ -50,9 +50,10 @@ export const cartApi = apiSlice.injectEndpoints({
                 maxStock
               );
             } else if (product) {
+              const maxStock = product.countInStock ?? Infinity;
               draft.cart.push({
                 productId,
-                quantity,
+                quantity: Math.min(quantity, maxStock),
                 product,
               });
             }
@@ -112,7 +113,10 @@ export const cartApi = apiSlice.injectEndpoints({
         const patchResult = dispatch(
           cartApi.util.updateQueryData("getCart", undefined, (draft) => {
             const item = draft.cart.find((i) => i.productId === productId);
-            if (item) item.quantity = quantity;
+            if (item) {
+              const maxStock = item.product.countInStock ?? Infinity;
+              item.quantity = Math.max(1, Math.min(quantity, maxStock));
+            }
           })
         );
         try {

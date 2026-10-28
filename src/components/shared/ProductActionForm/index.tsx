@@ -18,7 +18,10 @@ const ProductActionForm = ({
 
   const existingItem = cart.find((item) => item.productId === product._id);
   const existingQuantity = existingItem?.quantity || 0;
-  const availableStock = (product.countInStock || 0) - existingQuantity;
+  const availableStock = Math.max(
+    0,
+    (product.countInStock || 0) - existingQuantity
+  );
 
   if (variant === "card")
     return (

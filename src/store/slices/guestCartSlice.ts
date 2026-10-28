@@ -22,8 +22,22 @@ const guestCartSlice = createSlice({
       const existing = state.items.find(
         (i) => i.productId === action.payload.productId
       );
-      if (existing) existing.quantity += action.payload.quantity;
-      else if (action.payload.product) state.items.push(action.payload);
+      if (existing) {
+        const stock =
+          existing.product?.countInStock ??
+          action.payload.product?.countInStock ??
+          Infinity;
+        existing.quantity = Math.min(
+          existing.quantity + action.payload.quantity,
+          stock
+        );
+      } else if (action.payload.product) {
+        const stock = action.payload.product.countInStock ?? Infinity;
+        state.items.push({
+          ...action.payload,
+          quantity: Math.min(action.payload.quantity, stock),
+        });
+      }
     },
     // 移除商品
     removeItem(state, action: PayloadAction<string>) {
@@ -37,7 +51,10 @@ const guestCartSlice = createSlice({
       const item = state.items.find(
         (i) => i.productId === action.payload.productId
       );
-      if (item) item.quantity = action.payload.quantity;
+      if (item) {
+        const stock = item.product?.countInStock ?? Infinity;
+        item.quantity = Math.max(1, Math.min(action.payload.quantity, stock));
+      }
     },
     // 清空購物車
     clearItems(state) {

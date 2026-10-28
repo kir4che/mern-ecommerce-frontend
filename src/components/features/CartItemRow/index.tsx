@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import QuantityStepper from "@/components/shared/QuantityStepper";
 import type { CartItem } from "@/types";
@@ -10,23 +10,35 @@ interface CartItemRowProps {
 
 const CartItemRow = ({ item, onChangeQuantity }: CartItemRowProps) => {
   const [displayQuantity, setDisplayQuantity] = useState(item.quantity);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 使用者停止操作 220ms 後呼叫 onChangeQuantity，避免頻繁打 API。
+  // 當外部 item.quantity 變更（如推薦商品區按加入購物車）時，同步更新內部顯示數量，並取消待發送的請求。
   useEffect(() => {
-    if (displayQuantity === item.quantity) return;
+    setDisplayQuantity(item.quantity);
+    if (timerRef.current) clearTimeout(timerRef.current);
+  }, [item.quantity]);
 
-    const timer = setTimeout(() => {
-      onChangeQuantity(item.productId, displayQuantity);
+  // 僅在使用者主動操作 Stepper 時觸發防抖更新
+  const handleQuantityChange = (newQuantity: number) => {
+    setDisplayQuantity(newQuantity);
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    timerRef.current = setTimeout(() => {
+      onChangeQuantity(item.productId, newQuantity);
     }, 220);
+  };
 
-    return () => clearTimeout(timer);
-  }, [displayQuantity, item.productId, item.quantity, onChangeQuantity]);
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   return (
     <QuantityStepper
       value={displayQuantity}
       max={item.product.countInStock}
-      onChange={setDisplayQuantity}
+      onChange={handleQuantityChange}
     />
   );
 };

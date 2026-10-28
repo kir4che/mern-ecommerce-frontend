@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { Product } from "@/types";
@@ -44,10 +44,17 @@ const AddToCartBtn = ({
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   // 計算可用庫存
   const existingItem = cart.find((item) => item.productId === product._id);
   const existingQuantity = existingItem?.quantity || 0;
-  const totalStock = product.countInStock || 0;
+  const totalStock =
+    product.countInStock ?? existingItem?.product.countInStock ?? 0;
   const availableStock = Math.max(totalStock - existingQuantity, 0);
   const isOutOfStock = totalStock <= 0;
 
@@ -56,7 +63,7 @@ const AddToCartBtn = ({
       e.preventDefault();
       e.stopPropagation();
 
-      if (isOutOfStock || addState === "adding") return;
+      if (isOutOfStock || addState !== "idle") return;
 
       // 檢查是否超過可用庫存
       if (quantity > availableStock) {
@@ -122,11 +129,13 @@ const AddToCartBtn = ({
         variant="icon"
         icon={isSuccess ? undefined : PlusIcon}
         onClick={handleAdd}
-        disabled={isOutOfStock || isAdding}
+        disabled={isOutOfStock || isAdding || isSuccess}
         aria-label={ARIA_LABEL.ADD_TO_CART}
         className={cn(
           "size-8.5 rounded-full border-primary transition-colors hover:bg-primary hover:text-white",
-          !isOutOfStock && !isAdding && "active:scale-95",
+          !isOutOfStock && !isAdding && !isSuccess && "active:scale-95",
+          isSuccess &&
+            "border-green-600 bg-green-50 text-green-600 disabled:border-green-600 disabled:bg-green-50 disabled:text-green-600 disabled:opacity-100 cursor-default",
           className
         )}
       >
@@ -139,12 +148,12 @@ const AddToCartBtn = ({
     <Button
       icon={!isOutOfStock && !isAdding && !isSuccess ? CartPlusIcon : undefined}
       onClick={handleAdd}
-      disabled={isOutOfStock || isAdding}
+      disabled={isOutOfStock || isAdding || isSuccess}
       aria-label={ARIA_LABEL.ADD_TO_CART}
       className={cn(
         "w-full transition-transform",
         isSuccess &&
-          "border-green-600 bg-green-50 text-green-600 hover:bg-green-50",
+          "border-green-600 bg-green-50 text-green-600 disabled:border-green-600 disabled:bg-green-50 disabled:text-green-600 disabled:opacity-100 cursor-default hover:bg-green-50",
         className
       )}
     >
