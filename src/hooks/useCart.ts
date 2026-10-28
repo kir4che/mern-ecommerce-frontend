@@ -45,6 +45,8 @@ export const useCart = () => {
     if (!isAuthenticated) return guestItems;
 
     const serverItems = serverCartData?.cart ?? [];
+    if (guestItems.length === 0) return serverItems;
+
     const mergedMap = new Map(
       serverItems.map((item) => [item.productId, { ...item }])
     );
