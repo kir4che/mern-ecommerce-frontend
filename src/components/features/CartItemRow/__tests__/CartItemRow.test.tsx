@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import CartItemRow from "@/components/features/CartItemRow";
 
@@ -51,7 +51,7 @@ describe("CartItemRow 元件", () => {
     expect(screen.getByText("2")).toBeInTheDocument();
   });
 
-  it("使用者操作數量變化時，防抖 220ms 後呼叫 onChangeQuantity", () => {
+  it("使用者操作數量變化時，防抖 220ms 後呼叫 onChangeQuantity", async () => {
     vi.useFakeTimers();
     const onChangeQuantity = vi.fn();
 
@@ -59,11 +59,15 @@ describe("CartItemRow 元件", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "增加" }));
 
+    expect(screen.getByText("3")).toBeInTheDocument();
+
     // 尚未滿 220ms 不應呼叫
     expect(onChangeQuantity).not.toHaveBeenCalled();
 
     // 快轉超過 220ms
-    vi.advanceTimersByTime(250);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250);
+    });
 
     expect(onChangeQuantity).toHaveBeenCalledTimes(1);
     expect(onChangeQuantity).toHaveBeenCalledWith("product-1", 3);

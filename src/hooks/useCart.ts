@@ -81,11 +81,7 @@ export const useCart = () => {
 
   // 加入購物車
   const handleAddToCart = useCallback(
-    async (
-      productId: string,
-      quantity: number,
-      product?: CartProduct
-    ) => {
+    async (productId: string, quantity: number, product?: CartProduct) => {
       if (!productId) throw new Error("商品 ID 不存在");
       const validQuantity = Math.max(1, quantity || 1);
 
@@ -137,16 +133,16 @@ export const useCart = () => {
 
   // 修改商品數量（樂觀更新 + 非同步同步到後端）
   const handleChangeQuantity = useCallback(
-    (productId: string, quantity: number) => {
+    async (productId: string, quantity: number) => {
       if (!Number.isInteger(quantity) || quantity < 1) return;
 
       if (isAuthenticated) {
-        void updateCartItemQuantity({ productId, quantity })
-          .unwrap()
-          .catch(() => {
-            // 若同步失敗，則重新抓取購物車資料以回復正確狀態。
-            void refetchCart();
-          });
+        try {
+          await updateCartItemQuantity({ productId, quantity }).unwrap();
+        } catch {
+          // 失敗則重新抓取購物車資料以回復正確狀態
+          await refetchCart();
+        }
         return;
       }
 
